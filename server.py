@@ -521,11 +521,14 @@ def audio_text(path, name):
     try:
         from faster_whisper import WhisperModel
     except ImportError:
-        if getattr(sys, "frozen", False):
-            raise ExtractError("Voice recordings are not supported in this version of Lamplight yet. Documents and pictures work.") from None
         raise ExtractError("Voice recordings need one install: run  pip install faster-whisper  and restart the server.") from None
     if _speech["model"] is None:
-        _speech["model"] = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
+        try:
+            _speech["model"] = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8",
+                                            download_root=os.environ.get("STUDY_DESK_WHISPER_DIR") or None)
+        except Exception as e:                       # first use downloads the speech model once, so a missing connection lands here
+            print("Speech model failed to load: %r" % (e,))
+            raise ExtractError("Lamplight needs the internet once to download its speech model (about 150 MB) the first time you add a recording. Connect, then add the recording again. Documents and pictures still work offline.") from None
     segments, info = _speech["model"].transcribe(path, vad_filter=True)   # the voice filter stops made-up words in silence
     if MAX_AUDIO_SECONDS and info.duration and info.duration > MAX_AUDIO_SECONDS:
         raise ExtractError("This recording is longer than %d minutes." % (MAX_AUDIO_SECONDS // 60))

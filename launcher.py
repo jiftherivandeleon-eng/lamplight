@@ -249,6 +249,8 @@ def main(webview=None):
     sys.path.insert(0, base_dir())
     for var in ("STUDY_DESK_MODE", "STUDY_DESK_HOSTS", "STUDY_DESK_ALLOW_HTTP"):
         os.environ.pop(var, None)                      # the desktop app is always the private, single-person mode
+    os.environ.setdefault("STUDY_DESK_WHISPER_DIR", os.path.join(folder, "speech-models"))   # the speech model downloads here once, and stays
+    os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
     port = pick_port()
     server, _srv = start_server(port)
     if not wait_until_up(port):

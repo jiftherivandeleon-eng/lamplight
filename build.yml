@@ -29,6 +29,9 @@ jobs:
           --hidden-import server
           --collect-submodules uvicorn
           --collect-all webview
+          --collect-all faster_whisper
+          --collect-all ctranslate2
+          --collect-submodules onnxruntime
           launcher.py
 
       - name: Smoke test the built app (it must start its engine and answer)
@@ -41,7 +44,10 @@ jobs:
             Start-Sleep -Seconds 1
             try { $r = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/manifest.webmanifest -TimeoutSec 2; if ($r.StatusCode -eq 200) { $ok = $true; break } } catch {}
           }
+          $voice = $false
+          try { $voice = (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/ -TimeoutSec 5).Content -match 'data-voice="1"' } catch {}
           Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          if ($ok -and -not $voice) { throw "The app started, but the speech engine is missing from the build." }
           if (-not $ok) { if (Test-Path "$PWD\smoke-home\lamplight.log") { Get-Content "$PWD\smoke-home\lamplight.log" -Tail 40 }; throw "The built app did not start." }
 
       - name: Build the installer
