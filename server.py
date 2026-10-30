@@ -513,10 +513,16 @@ def image_text(path, name):
     return "# Picture: %s\n\n%s" % (name, body)
 
 
+import importlib.util as _ilu
+VOICE_OK = _ilu.find_spec("faster_whisper") is not None
+
+
 def audio_text(path, name):
     try:
         from faster_whisper import WhisperModel
     except ImportError:
+        if getattr(sys, "frozen", False):
+            raise ExtractError("Voice recordings are not supported in this version of Lamplight yet. Documents and pictures work.") from None
         raise ExtractError("Voice recordings need one install: run  pip install faster-whisper  and restart the server.") from None
     if _speech["model"] is None:
         _speech["model"] = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
@@ -3568,7 +3574,7 @@ PAGE = r"""<!doctype html>
   }
 </style>
 </head>
-<body data-public="__PUBLIC__" data-cloud="__CLOUD__" data-user="__USER__">
+<body data-public="__PUBLIC__" data-cloud="__CLOUD__" data-user="__USER__" data-voice="__VOICE__">
 <div id="overlay">Drop files to add them</div>
 
 <dialog id="acctDlg" aria-labelledby="acctTitle">
@@ -3790,6 +3796,14 @@ PAGE = r"""<!doctype html>
   };  var IMAGE_EXT = [".png", ".jpg", ".jpeg", ".webp"];
   var AUDIO_EXT = [".mp3", ".wav", ".m4a", ".ogg", ".opus", ".flac", ".webm", ".aac"];
   var ALLOWED = [".md", ".txt", ".pdf", ".docx", ".pptx"].concat(IMAGE_EXT, AUDIO_EXT);
+  var VOICE_OK = document.body.getAttribute("data-voice") === "1";
+  if (!VOICE_OK) {                       // this copy has no speech engine: do not offer what cannot work
+    ALLOWED = ALLOWED.filter(function (e) { return AUDIO_EXT.indexOf(e) < 0; });
+    var pk = document.getElementById("picker");
+    if (pk) pk.setAttribute("accept", ALLOWED.join(",") + ",image/png,image/jpeg,image/webp");
+    var dsub = document.querySelector("#drop .sub");
+    if (dsub) dsub.textContent = "Documents .md .txt .pdf .docx .pptx \u00b7 pictures .png .jpg .webp";
+  }
   var MAX_IMAGE_BYTES = 20 * 1024 * 1024;
   if (PUBLIC) {
     HINTS.local = "This runs on the server's computer. Your documents are kept in your own private space there, and only the selected document is searched.";
@@ -4721,7 +4735,7 @@ function renderMarkdown(el, text) {
   var recBtn = document.getElementById("rec");
   var recorder = null, recChunks = [], recTimer = null, recStarted = 0;
   var MAX_REC_SECONDS = 2 * 60 * 60;
-  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) recBtn.hidden = true;
+  if (!VOICE_OK || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) recBtn.hidden = true;
 
   function pad2(n) { return (n < 10 ? "0" : "") + n; }
   function recLabel() {
@@ -4968,7 +4982,8 @@ def home():
     who = (username_of(user) if PUBLIC else "local") or ""
     return (PAGE.replace("__PUBLIC__", "1" if PUBLIC else "0")
             .replace("__CLOUD__", "1" if ALLOW_CLOUD else "0")
-            .replace("__USER__", who))
+            .replace("__USER__", who)
+            .replace("__VOICE__", "1" if VOICE_OK else "0"))
 
 
 @app.get("/history/{sid}")

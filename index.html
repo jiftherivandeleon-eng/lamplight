@@ -62,11 +62,11 @@ footer{padding:34px 0 50px;border-top:1px solid var(--line);color:var(--muted);f
       <h1>Your notes, answered privately.</h1>
       <p class="lead">Lamplight is a free Windows app. Add your notes, PDFs, slides and pictures, then ask questions or build study guides. The AI runs on your own computer, so your files never leave it.</p>
       <div class="cta">
-        <a class="btn" href="https://github.com/jiftherivandeleon-eng/lamplight/releases/latest/download/LamplightSetup.exe">
+        <a class="btn" id="dl" href="https://github.com/jiftherivandeleon-eng/lamplight/releases/latest/download/LamplightSetup.exe">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
           Download for Windows
         </a>
-        <span class="sub">Free · Windows 10 or 11 (64-bit) · no account needed</span>
+        <span class="sub" id="dlmsg" role="status">Free · Windows 10 or 11 (64-bit) · no account needed</span>
       </div>
     </div>
 
@@ -117,5 +117,24 @@ footer{padding:34px 0 50px;border-top:1px solid var(--line);color:var(--muted);f
     <p>Lamplight is open source (MIT). <a href="https://github.com/jiftherivandeleon-eng/lamplight">View the code</a> · <a href="https://github.com/jiftherivandeleon-eng/lamplight/releases">All versions</a></p>
   </footer>
 </div>
+<script>
+(function () {
+  var link = document.getElementById("dl"), msg = document.getElementById("dlmsg");
+  var api = "https://api.github.com/repos/jiftherivandeleon-eng/lamplight/releases/latest";
+  link.addEventListener("click", function (e) {
+    e.preventDefault();
+    var fallback = link.getAttribute("href");
+    msg.textContent = "Checking for the latest version...";
+    fetch(api, { headers: { Accept: "application/vnd.github+json" } })
+      .then(function (r) { if (!r.ok) throw new Error("status " + r.status); return r.json(); })
+      .then(function (rel) {
+        var asset = (rel.assets || []).filter(function (a) { return a.name === "LamplightSetup.exe"; })[0];
+        if (asset) { msg.textContent = "Downloading Lamplight " + (rel.tag_name || "") + "..."; location.href = asset.browser_download_url; }
+        else { msg.textContent = "The Windows installer isn't published yet. Please check back soon."; }
+      })
+      .catch(function () { location.href = fallback; });     // if GitHub can't be asked, try the direct link anyway
+  });
+})();
+</script>
 </body>
 </html>
