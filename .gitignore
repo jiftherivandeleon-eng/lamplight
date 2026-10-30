@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Private data. These hold people's documents, chats and logins, so they must NEVER be committed.
+docs/
+sessions/
+guides/
+facts.json
+auth/
+data/
+textcache/
+cache/
+backups/
+*.bak*
+*.part
+*.tmp
+lamplight-release/
