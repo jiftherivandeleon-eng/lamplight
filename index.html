@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lamplight - private AI study workspace for Windows</title>
+<meta name="description" content="Lamplight is a free Windows app that lets you chat with your own notes, PDFs, slides and pictures. The AI runs on your computer, so your files stay private.">
+<meta name="theme-color" content="#120e0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23120e0a'/%3E%3Cpath d='M11 5h10l5 11H6z' fill='%23ffd48a'/%3E%3Cpath d='M16 16v8' stroke='%23ffd48a' stroke-width='2'/%3E%3Cpath d='M10.5 27h11' stroke='%23ffd48a' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:title" content="Lamplight - private AI study workspace">
+<meta property="og:description" content="Free Windows app. Chat with your own files. The AI runs on your computer.">
+<style>
+:root{--bg:#120e0a;--panel:#1b1511;--line:#3a2e22;--text:#f3ebe0;--muted:#b9a690;--amber:#f0b35b;--amber-lt:#ffd48a;--ink:#1c1206}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.6 Inter,system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--amber-lt)}
+.wrap{width:min(1040px,100% - 32px);margin-inline:auto}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em;color:var(--text);text-decoration:none}
+.logo .mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--amber-lt);background:linear-gradient(145deg,#4a3417,#2a1d0e);border:1px solid #b9873a;box-shadow:0 0 18px rgba(240,179,91,.35)}
+nav a{margin-left:18px;font-size:.95rem;color:var(--muted);text-decoration:none}
+nav a:hover{color:var(--text)}
+.hero{position:relative;padding:56px 0 40px;text-align:center;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:-120px 0 0;z-index:-1;background:radial-gradient(620px 360px at 50% 0,rgba(240,179,91,.25),transparent 70%)}
+.hero h1{margin:0 auto;max-width:15ch;font-size:clamp(2.2rem,6vw,3.8rem);line-height:1.08;letter-spacing:-.035em;text-wrap:balance}
+.hero p.lead{margin:18px auto 0;max-width:46ch;color:var(--muted);font-size:1.15rem;text-wrap:balance}
+.cta{display:inline-flex;flex-direction:column;align-items:center;gap:8px;margin-top:30px}
+a.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;border-radius:12px;background:var(--amber);color:var(--ink);font-weight:700;font-size:1.1rem;text-decoration:none;box-shadow:0 0 34px rgba(240,179,91,.3)}
+a.btn:hover{background:#f6c36b}
+a.btn:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #f6c36b;outline-offset:3px}
+.sub{font-size:.88rem;color:var(--muted)}
+section{padding:44px 0}
+h2{margin:0 0 8px;font-size:1.7rem;letter-spacing:-.025em}
+.intro{margin:0 0 26px;color:var(--muted);max-width:60ch}
+.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+.steps li{counter-increment:s;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;margin-bottom:12px;border-radius:50%;background:var(--amber);color:var(--ink);font-weight:700}
+.steps b{display:block;margin-bottom:4px}.steps span{color:var(--muted);font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.card h3{margin:0 0 6px;font-size:1.05rem}.card p{margin:0;color:var(--muted);font-size:.96rem}
+.note{padding:20px;border:1px solid #5a4325;border-radius:14px;background:#201810}
+.note h3{margin:0 0 8px}.note ul{margin:0;padding-left:1.2rem;color:var(--muted)}.note li{margin:6px 0}
+details{border-bottom:1px solid var(--line);padding:14px 0}
+summary{cursor:pointer;font-weight:600}details p{margin:8px 0 0;color:var(--muted)}
+code{padding:2px 6px;border-radius:6px;background:#0e0b08;border:1px solid var(--line);font-size:.88em;word-break:break-all}
+footer{padding:34px 0 50px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem;text-align:center}
+@media (max-width:760px){.steps{grid-template-columns:1fr}nav a:not(.keep){display:none}.hero{padding-top:36px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#top"><span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="20" height="20" fill="none"><path d="M11 5h10l5 11H6z" fill="currentColor"/><path d="M16 16v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.5 27h11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span>Lamplight</a>
+    <nav><a href="#how">How it works</a><a href="#faq">Questions</a><a class="keep" href="https://github.com/jiftherivandeleon-eng/lamplight">GitHub</a></nav>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <h1>Your notes, answered privately.</h1>
+      <p class="lead">Lamplight is a free Windows app. Add your notes, PDFs, slides and pictures, then ask questions or build study guides. The AI runs on your own computer, so your files never leave it.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/jiftherivandeleon-eng/lamplight/releases/latest/download/LamplightSetup.exe">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+          Download for Windows
+        </a>
+        <span class="sub">Free · Windows 10 or 11 (64-bit) · no account needed</span>
+      </div>
+    </div>
+
+    <section id="how">
+      <h2>Three steps</h2>
+      <p class="intro">No settings, no command line.</p>
+      <ol class="steps">
+        <li><b>Download and install</b><span>Open the file you downloaded and click through the installer. A Lamplight icon appears on your desktop.</span></li>
+        <li><b>First-time setup</b><span>Lamplight sets up its AI engine and downloads the AI once. It shows you the progress. This needs internet and a few gigabytes.</span></li>
+        <li><b>Start asking</b><span>Drop in your files and ask. After setup it works offline.</span></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>What you can do</h2>
+      <p class="intro">Built for studying from your own material.</p>
+      <div class="grid">
+        <div class="card"><h3>Ask your documents</h3><p>Pick a file and ask questions. Answers say where they came from, and everyday chat works too.</p></div>
+        <div class="card"><h3>Study guides</h3><p>Turn a whole document into notes with a question-and-answer key.</p></div>
+        <div class="card"><h3>Pictures too</h3><p>Photos of handwritten or printed notes are read for you. Voice recordings are coming in a later version.</p></div>
+        <div class="card"><h3>Private by design</h3><p>Everything stays on your computer. Only the optional Cloud mode sends text out, and it asks first.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="note">
+        <h3>Good to know before you install</h3>
+        <ul>
+          <li><b>Windows may warn you.</b> The app isn't digitally signed yet, so Windows SmartScreen may say it's from an unknown publisher. Choose <i>More info</i>, then <i>Run anyway</i>. To be sure you have the real file, compare its checksum on the <a href="https://github.com/jiftherivandeleon-eng/lamplight/releases/latest">release page</a>.</li>
+          <li><b>It needs some room.</b> Plan for about 10 GB of free disk space and 8 GB of memory. A graphics card helps, but isn't required.</li>
+          <li><b>A small AI can be wrong.</b> Check important answers against your own sources.</li>
+          <li><b>Windows only for now.</b> Phone and Mac versions aren't available yet.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2>Questions</h2>
+      <details><summary>Is it really free?</summary><p>Yes. It's open source under the MIT license. The AI models are downloaded from Ollama and have their own terms.</p></details>
+      <details><summary>Does it send my files anywhere?</summary><p>No. Local mode runs entirely on your computer. Cloud mode is optional, needs a login stored on your PC, and sends your question and the selected document's text to Ollama's servers.</p></details>
+      <details><summary>Does it need internet?</summary><p>Only for the first-time setup and for Cloud mode. Normal use works offline.</p></details>
+      <details><summary>Where are my files kept?</summary><p>In your user folder, in <code>%LOCALAPPDATA%\Lamplight</code>. Uninstalling the app leaves them there, so nothing is lost by accident.</p></details>
+      <details><summary>How do I know the download is genuine?</summary><p>Each release lists a SHA-256 checksum. In PowerShell run <code>Get-FileHash .\LamplightSetup.exe</code> and compare.</p></details>
+    </section>
+  </main>
+
+  <footer>
+    <p>Lamplight is open source (MIT). <a href="https://github.com/jiftherivandeleon-eng/lamplight">View the code</a> · <a href="https://github.com/jiftherivandeleon-eng/lamplight/releases">All versions</a></p>
+  </footer>
+</div>
+</body>
+</html>

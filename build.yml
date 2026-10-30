@@ -1,0 +1,73 @@
+name: Build Lamplight for Windows
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: python -m pip install -r requirements-app.txt
+
+      - name: Build the app
+        run: >
+          pyinstaller --noconfirm --windowed --name Lamplight
+          --icon assets/lamplight.ico
+          --add-data "setup.html;."
+          --hidden-import server
+          --collect-submodules uvicorn
+          --collect-all webview
+          launcher.py
+
+      - name: Smoke test the built app (it must start its engine and answer)
+        shell: pwsh
+        run: |
+          $env:LAMPLIGHT_HOME = "$PWD\smoke-home"
+          $p = Start-Process -FilePath ".\dist\Lamplight\Lamplight.exe" -PassThru
+          $ok = $false
+          foreach ($i in 1..40) {
+            Start-Sleep -Seconds 1
+            try { $r = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/manifest.webmanifest -TimeoutSec 2; if ($r.StatusCode -eq 200) { $ok = $true; break } } catch {}
+          }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          if (-not $ok) { if (Test-Path "$PWD\smoke-home\lamplight.log") { Get-Content "$PWD\smoke-home\lamplight.log" -Tail 40 }; throw "The built app did not start." }
+
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $v = "${{ github.ref_name }}".TrimStart("v")
+          if (-not $v -or $v -eq "main") { $v = "0.0.0" }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" lamplight.iss
+
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash installer\LamplightSetup.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  LamplightSetup.exe" | Out-File -Encoding ascii installer\SHA256SUMS.txt
+          Get-Content installer\SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LamplightSetup
+          path: installer/*
+
+      - name: Publish to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            installer/LamplightSetup.exe
+            installer/SHA256SUMS.txt

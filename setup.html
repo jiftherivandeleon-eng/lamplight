@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lamplight setup</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{display:grid;place-items:center;min-height:100vh;padding:20px;background:radial-gradient(700px 380px at 50% -8%,rgba(240,179,91,.2),transparent 65%),#120e0a;color:#f3ebe0;font:16px/1.5 system-ui,"Segoe UI",sans-serif}
+.card{width:min(520px,100%);padding:26px 24px;border:1px solid #3a2e22;border-radius:16px;background:#1b1511;box-shadow:0 0 60px rgba(240,179,91,.07)}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#4a3417,#2a1d0e);border:1px solid #b9873a;color:#ffd48a;box-shadow:0 0 20px rgba(240,179,91,.35)}
+h1{margin:0;font-size:1.25rem}p{margin:8px 0 0;color:#c9b8a2}.small{font-size:.85rem;color:#a8957f}
+ul{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+li{padding:12px;border:1px solid #43362a;border-radius:10px;background:#14100c}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.name{font-weight:600}.state{font-size:.85rem;color:#a8957f;text-align:right}
+li.done .state{color:#86d98f}li.working .state{color:#ffd48a}li.bad .state{color:#fb7185}
+.track{height:8px;margin-top:10px;border-radius:99px;background:#2a2118;overflow:hidden;display:none}
+li.working .track{display:block}.fill{height:100%;width:0;background:#f0b35b;transition:width .3s}
+.fill.wait{width:35%;animation:slide 1.2s infinite ease-in-out}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+.detail{margin-top:6px;font-size:.78rem;color:#a8957f;min-height:1.1em}
+button{margin-top:18px;padding:12px 18px;border:1px solid #f0b35b;border-radius:10px;background:#f0b35b;color:#1c1206;font:inherit;font-weight:650;cursor:pointer;width:100%}
+button.ghost{background:transparent;color:#ffd48a;border-color:#43362a;margin-top:10px}
+button:disabled{opacity:.55;cursor:wait}button:focus-visible{outline:3px solid #f6c36b;outline-offset:2px}
+#err{margin-top:14px;color:#fb7185;font-size:.9rem;min-height:1.2em}
+</style></head><body>
+<main class="card">
+  <div class="brand"><div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="26" height="26" fill="none"><path d="M11 5h10l5 11H6z" fill="currentColor"/><path d="M16 16v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.5 27h11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></div><h1>Welcome to Lamplight</h1></div>
+  <p id="intro">One-time setup. Lamplight runs the AI on your own computer, so your notes stay private. It needs to download the AI once, which is several gigabytes, so this can take a while on a slow connection. You only do this once.</p>
+  <ul>
+    <li id="s-ollama"><div class="row"><span class="name">The AI engine (Ollama)</span><span class="state" id="t-ollama">Waiting</span></div><div class="track"><div class="fill wait" id="f-ollama"></div></div><div class="detail" id="d-ollama"></div></li>
+    <li id="s-model0"><div class="row"><span class="name">The chat AI</span><span class="state" id="t-model0">Waiting</span></div><div class="track"><div class="fill" id="f-model0"></div></div><div class="detail" id="d-model0"></div></li>
+    <li id="s-model1"><div class="row"><span class="name">The search helper</span><span class="state" id="t-model1">Waiting</span></div><div class="track"><div class="fill" id="f-model1"></div></div><div class="detail" id="d-model1"></div></li>
+  </ul>
+  <div id="err" role="alert"></div>
+  <button id="go" type="button" disabled>Checking your computer...</button>
+  <button id="skip" class="ghost" type="button" hidden>Skip for now</button>
+  <p class="small" style="margin-top:14px">Needs internet for this step only. After that, Lamplight works offline.</p>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var go = $("go"), skip = $("skip"), err = $("err");
+  function mb(n) { return (n / 1048576).toFixed(n > 1073741824 ? 0 : 1) + " MB"; }
+  window.setup = {
+    step: function (key, state, text) {
+      var li = $("s-" + key); li.className = state === "bad" ? "bad" : state;
+      $("t-" + key).textContent = state === "done" ? "Ready" : (text || "");
+      $("d-" + key).textContent = state === "working" ? (text || "") : "";
+      if (key === "ollama") { $("f-ollama").className = state === "working" ? "fill wait" : "fill"; if (state === "done") $("f-ollama").style.width = "100%"; }
+    },
+    bar: function (key, done, total) {
+      var f = $("f-" + key), li = $("s-" + key);
+      li.className = "working";
+      if (total > 0) { f.className = "fill"; f.style.width = Math.min(100, done * 100 / total) + "%"; $("t-" + key).textContent = Math.floor(done * 100 / total) + "%"; $("d-" + key).textContent = mb(done) + " of " + mb(total); }
+      else { f.className = "fill wait"; }
+    },
+    fail: function (msg) { err.textContent = msg; go.disabled = false; go.textContent = "Try again"; skip.hidden = false; },
+    finished: function () { go.disabled = false; go.textContent = "Open Lamplight"; go.onclick = openApp; skip.hidden = true; err.textContent = ""; }
+  };
+  function openApp() { window.pywebview.api.open_app(); }
+  function startSetup() { err.textContent = ""; go.disabled = true; go.textContent = "Setting up..."; window.pywebview.api.start(); }
+  skip.addEventListener("click", openApp);
+  go.onclick = startSetup;
+  function init() {
+    window.pywebview.api.status().then(function (s) {
+      if (s.installed && s.running) setup.step("ollama", "done");
+      (s.models || []).forEach(function (m, i) { if (m.ready) setup.step("model" + i, "done"); });
+      var all = s.running && (s.models || []).every(function (m) { return m.ready; });
+      if (all) { setup.finished(); } else { go.disabled = false; go.textContent = "Start setup"; }
+      skip.hidden = false;
+    });
+  }
+  if (window.pywebview && window.pywebview.api) init(); else window.addEventListener("pywebviewready", init);
+})();
+</script></body></html>
