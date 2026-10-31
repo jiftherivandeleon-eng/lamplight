@@ -4011,6 +4011,13 @@ function addInline(parent, text) {
     parent.appendChild(document.createTextNode(text.slice(last)));
   }
 }
+function splitRow(line) {
+    var s = line.trim();
+    if (s.charAt(0) === "|") s = s.slice(1);
+    if (s.charAt(s.length - 1) === "|") s = s.slice(0, -1);
+    return s.split("|").map(function (c) { return c.trim(); });
+  }
+
 function renderMarkdown(el, text) {
     el.textContent = "";
     el.classList.add("md");
