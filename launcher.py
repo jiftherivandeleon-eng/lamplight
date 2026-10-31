@@ -267,7 +267,8 @@ def main(webview=None):
         webview.settings["ALLOW_DOWNLOADS"] = True    # lets "Download as Word file" save from inside the app
     except Exception:
         pass
-    window = webview.create_window(APP_NAME, first, js_api=api, width=1180, height=800, min_size=(360, 520), background_color="#120e0a")
+    window = webview.create_window(APP_NAME, first, js_api=api, width=1180, height=800, min_size=(360, 520), background_color="#120e0a",
+                                   text_select=True)   # pywebview blocks selecting and copying text unless this is on
     holder["window"] = window
     webview.start(storage_path=os.path.join(folder, "webview"), private_mode=False)
 
