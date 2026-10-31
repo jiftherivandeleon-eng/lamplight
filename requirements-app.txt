@@ -5,3 +5,4 @@ pypdf>=5,<7
 pywebview>=5.3,<7
 pyinstaller>=6.10,<7
 faster-whisper>=1.1,<2
+av>=15,<19

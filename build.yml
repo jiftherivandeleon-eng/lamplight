@@ -21,6 +21,9 @@ jobs:
       - name: Install packages
         run: python -m pip install -r requirements-app.txt
 
+      - name: Check the speech decoder really decodes sound
+        run: python check_voice.py
+
       - name: Build the app
         run: >
           pyinstaller --noconfirm --windowed --name Lamplight
@@ -33,6 +36,12 @@ jobs:
           --collect-all ctranslate2
           --collect-submodules onnxruntime
           launcher.py
+
+      - name: Check the speech files are inside the build
+        shell: pwsh
+        run: |
+          $f = "dist\Lamplight\_internal\faster_whisper\assets\silero_vad_v6.onnx"
+          if (-not (Test-Path $f)) { Get-ChildItem dist\Lamplight\_internal -Directory | Select-Object -ExpandProperty Name; throw "Missing from the build: $f" }
 
       - name: Smoke test the built app (it must start its engine and answer)
         shell: pwsh
